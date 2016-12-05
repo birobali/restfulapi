@@ -1,4 +1,11 @@
-#
+# Project specific rules
+## PATCH
+Be aware that the PATCH method sometimes blocked in some firewall connfiguration, therefore the resource should always support [PUT](#PUT) method beside PATCH.
+The PATCH method supports [JsonPatch](http://jsonpatch.com) format.
+<<example>>
+## PUT
+The request has to send whether the If-Match header or the If-None-Match heder. Otherwise sthe server responses with 412 (Precondition Failed).
+
 #Appendix
 ## Method Definitions
 
@@ -71,7 +78,7 @@ Use PATCH for the following:
 * To support partial updates in contrast with PUT that is defined for the complete update or replacement of a resource
 
 The client can check whether te PATCH is supported via the Allow header of the OPTIONS response or the resource can include an Accept-Patch header with the supported media types for the PATCH method.
-Be aware that the PATCH method sometimes blocked in some firewall connfiguration, therefore the resource should always support PUT method beside PATCH.
+
 Similar to [PUT](#PUT) method PATCH can handle [Optimistic Concurrency Control](<<link_to_optimistic_concurrency_Control>>)
 
 ### <a name="DELETE"></a>DELETE

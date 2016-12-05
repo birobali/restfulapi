@@ -2,13 +2,14 @@
 ## PATCH
 Be aware that the PATCH method sometimes blocked in some firewall connfiguration, therefore the resource should always support [PUT](#PUT) method beside PATCH.
 The PATCH method supports [JsonPatch](http://jsonpatch.com) format.
+
 <<example>>
+
 ## PUT
 The request has to send whether the If-Match header or the If-None-Match heder. Otherwise sthe server responses with 412 (Precondition Failed).
 
-#Appendix
+# Appendix
 ## Method Definitions
-
 The request method is the primary source of request semantics. It indicates the purpose of request and what is expected by the client as a successful result.
 The request method's semantics might be specialized by the semantics of some header.
 
@@ -50,28 +51,37 @@ When the clien sends an OPTIONS request to the server the server responses with 
 
 <<example>>
 
-### <a name="POST"></a>POST
-Use POST for the following:
-* To create a new resource
-* To perform any unsafe or nonidempotent operation via calling a SOA endpoint
-* To run queries with large inputs
+## Resource entity
+### GET
+The client send a request to the server. In the response it gets back the resource entity and in the header its ETag.
+The [ETag](<<link_to_etag>>) header provides the current entity-tag for the selected resource entity
+
+A conditional GET allows a client to ask a server if a resource has changed. If it has not changed, it can assume it's current knowledge is up to date and send back 304 Not Modified status. If it has changed, the server will send the resource back alon with 200 OK status to the client.
+The client uses the [If-None-Match](<<link_to_If-None-Match>>) header with the ETag as the value. It's asking the server "Return the resource if it's ETag does not match mine." Because an ETag changes when a resource has changed, this effectively asks the server to return the resource only if it has changed.
+
+<<example>>
 
 ### <a name="PUT"></a>PUT
 Use PUT for the following:
 * To create new resources only when client is able to assign URIs for the resources. To let clients assign URIs, the server needs to explain to clients how URIs on the server are organized, what kind of URIs are valid, and what kind are not
 * To override an existing resource with a modified version of the one residing on the server
 
-If a new resource is created, the server send back 201 (Created) response.
-If an existing resource is modified, either the 200 (OK) or 204 (No Content) response codes should be sent to indicate successful completion of the request.
-If the server does not support resource creation, return 404 (Not Found) status to the client.
-#### Optimistic Concurrency Control
+#### Create new resource
+The response status can be:
+* *201 (Created)*: if a new resource is created
+* *404 (Not Found)*: if the server does not support resource creation
+
+#### Override an existing resource (Optimistic Concurrency Control)
 We must handle in some cases concurrent updates on a resource, but all resources are suited for concurrency control.
 Once the ETag is received, it allows the client to perform the update. However, the changes will only apply if the ETag is still valid.
 If the resource exists, take the following steps:
 * First client must obtain an ETag for the update operation
 * The client has to send the new representation of the resource along with the If-Match condicional header that contains the ETag
-* If the supplied If-Match header do not match the actual ETag value of the resource on the server, the server send back 412 (Precondition Failed) response.
-* If the supplied conditions match the server updates the resource, and sends back 200 (OK) or 204 (No Content) with the updated value of ETag header. The response also includes a Content-Location header.
+The response should be:
+* *412 (Precondition Failed)*: if the supplied If-Match header do not match the actual ETag value of the resource on the server
+* *200 (OK) or 204 (No Content)*: if the supplied conditions match the server updates the resource, and sends back  with the updated value of ETag header. The response also includes a Content-Location header.
+
+The method requests that the state of the target resource be created or replaced with the state defined by the representation enclosed in the request message payload.
 
 ### <a name="PATCH"></a>PATCH
 Use PATCH for the following:
@@ -85,43 +95,31 @@ Similar to [PUT](#PUT) method PATCH can handle [Optimistic Concurrency Control](
 Use DELETE for the following:
 * To remove a resource entity identified by the Request URI
 
-A successful response should be 200 (OK) if the response includes an entity describing the status, 202 (Accepted) if the action has not yet been enacted, or 204 (No Content) if the action has been enacted but the response does not include an ent
-If a DELETE method is successfully applied the server should send back:
-* *202 (Accepted)*:  if the action will likely succeed but has not yet been enacted
-* *204 (No Content)*:  if the action has been enacted and no further information is to be supplied
-* *200 (OK)*: if the action has been enacted and theity.
-
 Similar to [PUT](#PUT) method DELETE can handle [Optimistic Concurrency Control](<<link_to_optimistic_concurrency_Control>>)
+The response should be:
+* *200 (OK)*: if the response includes an entity describing the status
+* *202 (Accepted)*: if the action will likely succeed but has not yet been enacted
+* *204 (No Content)*: if the action has been enacted and no further information is to be supplied
+* *403 (Forbidden)*: if the client submits an unconditional DELETE request
+* *412 (Precondition Failed)*: if the supplied conditions do not match
 
+If the request fails, the body should contain the explanation of the failure.
 
-## Resource entity
-### GET
-The client send a request to the server. In the response it gets back the resource entity and in the header its ETag.
-The [ETag](<<link_to_etag>>) header provides the current entity-tag for the selected resource entity
-
-A conditional GET allows a client to ask a server if a resource has changed. If it has not changed, it can assume it's current knowledge is up to date and send back 304 Not Modified status. If it has changed, the server will send the resource back alon with 200 OK status to the client.
-The client uses the [If-None-Match](<<link_to_If-None-Match>>) header with the ETag as the value. It's asking the server "Return the resource if it's ETag does not match mine." Because an ETag changes when a resource has changed, this effectively asks the server to return the resource only if it has changed.
-
-If the client submits an unconditional DELETE request, return error code 403 (Forbidden). If the supplied conditions do not match, return error code 412 (Precondition Failed). In either case, explain the reason for the failure to the client in the body of the representation.
-
-If the clients submits a conditional DELETE request and the supplied conditions match, delete the resource.
-
-<<example>>
-
-### PUT
-The method requests that the state of the target resource be created or replaced with the state defined by the representation enclosed in the request message payload.
-
-## REsource collection
-### POST
-#### Creating a new resource as a factory:
-When using POST to create new resources, the server decides the URI for the newly created resource.
+## Resource collection
+### <a name="POST"></a>POST
+Use POST for the following:
+* To create a new resource
+* To perform any unsafe or nonidempotent operation via calling a SOA endpoint
+* To run queries with large inputs
+Using POST to create new resources, the server decides the URI for the newly created resource.
 If the resources has been created on the server as a result of successfully processing a POST request, the server should send a 201 Created response along with the following headers:
 * [Location](<<link_to_location_header>>) that provides an identifier for the resource created.
 * [ETag](<<link_to_etag>>) for the resource
 
 The respose body should contain the resource's representation.
 
+The response should be the following:
+* *201 (Created)*: if a new resource is created
+* *409 (Conflict)*: if the resource already exists
 
 <<example>>
-
-If the resource already exists then the response is 409 (Conflict).

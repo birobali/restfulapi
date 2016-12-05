@@ -1,3 +1,5 @@
+#
+#Appendix
 ## Method Definitions
 
 The request method is the primary source of request semantics. It indicates the purpose of request and what is expected by the client as a successful result.
@@ -14,7 +16,7 @@ Methods | Idempotent | Safe | Resource type
 **GET** | yes | yes | Entity / Collection
 **HEAD** | yes | yes | Entity / Collection
 **OPTIONS** | yes | yes | Entity / Collection
-**POST** | no | no | Entity
+**POST** | no | no | Collection
 **PUT** | yes | no | Entity
 **PATCH** | no | no | Entity
 **DELETE** | yes | no | Entity
@@ -99,6 +101,10 @@ If the clients submits a conditional DELETE request and the supplied conditions 
 
 <<example>>
 
+### PUT
+The method requests that the state of the target resource be created or replaced with the state defined by the representation enclosed in the request message payload.
+
+## REsource collection
 ### POST
 #### Creating a new resource as a factory:
 When using POST to create new resources, the server decides the URI for the newly created resource.
@@ -108,9 +114,7 @@ If the resources has been created on the server as a result of successfully proc
 
 The respose body should contain the resource's representation.
 
+
 <<example>>
 
 If the resource already exists then the response is 409 (Conflict).
-
-### PUT
-The method requests that the state of the target resource be created or replaced with the state defined by the representation enclosed in the request message payload.
